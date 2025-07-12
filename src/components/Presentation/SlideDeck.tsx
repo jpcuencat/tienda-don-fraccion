@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Lottie from "lottie-react";
 import { Link } from "react-router-dom";
+import { presentationService } from "../../services/presentationService";
+import { migrateLegacyData } from "../../utils/migrationHelper";
+import type { Presentation, Slide, SlideStep } from "../../types/presentation";
 
+// Importaciones de animaciones (mantenidas para compatibilidad)
 import pizzaAnim from "./animations/pizza.json";
 import pizzaSliceAnim from "./animations/pizza_slice.json";
 import chocolateAnim from "./animations/chocolate.json";
@@ -39,9 +43,18 @@ const animationMap: Record<string, any> = {
   d5: fabricAnim,
 };
 
-interface SlideStep {
-  title: string;
-  steps: { id: string; description: string ; image?: string;}[];
+// Mapeo de imágenes
+const imageMap: Record<string, string> = {
+  pizza: pizza,
+  tanque: tanque,
+  descuento: descuento,
+  receta: receta,
+};
+
+interface SlideDeckProps {
+  presentationId?: string;
+  showControls?: boolean;
+  enableDatabase?: boolean; // Nueva prop para habilitar el sistema de BD
 }
 
 const slides: SlideStep[] = [
@@ -113,11 +126,43 @@ const slides: SlideStep[] = [
 ];
 
 
-export const SlideDeck = () => {
+export const SlideDeck = ({ enableDatabase = false }: { enableDatabase?: boolean } = {}) => {
   const [slideIndex, setSlideIndex] = useState(0);
   const [stepIndex, setStepIndex] = useState(0);
+  const [presentationData, setPresentationData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
-  const currentSlide = slides[slideIndex];
+  // Cargar datos desde la base de datos si está habilitada
+  useEffect(() => {
+    if (enableDatabase) {
+      const loadFromDatabase = async () => {
+        setLoading(true);
+        try {
+          const presentation = await presentationService.getPresentationById("fracciones-basicas");
+          if (presentation) {
+            setPresentationData(presentation);
+          } else {
+            // Si no existe, migrar datos legacy
+            const migratedData = migrateLegacyData();
+            await presentationService.createPresentation(migratedData);
+            setPresentationData(migratedData);
+          }
+        } catch (error) {
+          console.error("Error loading presentation:", error);
+          // Fallback a datos estáticos
+          setPresentationData(null);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      loadFromDatabase();
+    }
+  }, [enableDatabase]);
+
+  // Usar datos de la base de datos o fallback a datos estáticos
+  const slidesData = presentationData?.slides || slides;
+  const currentSlide = slidesData[slideIndex];
   const currentStep = currentSlide.steps[stepIndex];
   const totalSteps = currentSlide.steps.length;
 
@@ -125,7 +170,7 @@ export const SlideDeck = () => {
     if (stepIndex > 0) {
       setStepIndex(stepIndex - 1);
     } else if (slideIndex > 0) {
-      const prevSlide = slides[slideIndex - 1];
+      const prevSlide = slidesData[slideIndex - 1];
       setSlideIndex(slideIndex - 1);
       setStepIndex(prevSlide.steps.length - 1);
     }
@@ -134,11 +179,25 @@ export const SlideDeck = () => {
   const handleNext = () => {
     if (stepIndex < totalSteps - 1) {
       setStepIndex(stepIndex + 1);
-    } else if (slideIndex < slides.length - 1) {
+    } else if (slideIndex < slidesData.length - 1) {
       setSlideIndex(slideIndex + 1);
       setStepIndex(0);
     }
   };
+
+  // Función para obtener imagen
+  const getImageSrc = (imageId: string | undefined) => {
+    if (!imageId) return undefined;
+    return imageMap[imageId] || imageId;
+  };
+
+  if (loading) {
+    return (
+      <div className="w-full min-h-screen bg-gradient-to-br from-pink-800 to-yellow-700 p-6 md:p-12 flex items-center justify-center">
+        <div className="text-white text-xl">Cargando presentación...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-pink-800 to-yellow-700 p-6 md:p-12 flex flex-col items-center gap-6">
