@@ -1,54 +1,124 @@
-# React + TypeScript + Vite
+# 🎓 EstalMat Fracciones - Plataforma Educativa
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Una plataforma educativa interactiva diseñada para enseñar fracciones de manera visual y práctica a través de múltiples actividades gamificadas.
 
-Currently, two official plugins are available:
+## 📋 Características del Proyecto
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 🎯 Propósito Educativo
+Esta plataforma tiene como objetivo facilitar el aprendizaje de fracciones mediante experiencias interactivas que permiten a los estudiantes:
+- Visualizar conceptos abstractos de fracciones
+- Practicar operaciones con fracciones de forma intuitiva
+- Desarrollar comprensión conceptual a través del juego
+- Aplicar conocimientos en contextos cotidianos
 
-## Expanding the ESLint configuration
+### 🎮 Actividades Disponibles
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+#### 🍕 Simulador de Fracciones con Pizza
+- Representación visual de fracciones usando porciones de pizza
+- Sistema de arrastrar y soltar para combinar fracciones
+- Retroalimentación inmediata y seguimiento de progreso
+- Desafíos progresivos de dificultad creciente
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+#### 📘 Aprende Fracciones Paso a Paso
+- Presentación estructurada de conceptos de fracciones
+- Animaciones explicativas usando Lottie
+- Progresión didáctica desde conceptos básicos hasta avanzados
+
+#### 🪜 Escalera de Fracciones
+- Juego de ordenamiento de fracciones
+- Interfaz de arrastrar y soltar
+- Validación automática de respuestas
+- Efectos visuales de celebración
+
+#### 🛍️ Don Fracción - Tienda Virtual
+- Simulación de compras usando fracciones
+- Cálculo de precios y cantidades fraccionarias
+- Aplicación práctica de operaciones con fracciones
+- Gestión de descuentos y cálculos comerciales
+
+## 🛠️ Tecnologías Utilizadas
+
+### Frontend
+- **React 19.1.0** - Biblioteca principal de UI
+- **TypeScript** - Tipado estático para mayor robustez
+- **Vite** - Herramienta de build rápida y moderna
+- **React Router Dom** - Navegación entre páginas
+
+### Estilos y Animaciones
+- **Tailwind CSS** - Framework de CSS utilitario
+- **Framer Motion** - Animaciones fluidas
+- **Lottie React** - Animaciones vectoriales complejas
+- **Canvas Confetti** - Efectos de celebración
+
+### Funcionalidades Interactivas
+- **React DnD** - Sistema de arrastrar y soltar
+- **Fraction.js** - Manejo preciso de operaciones con fracciones
+- **Lodash** - Utilidades para manipulación de datos
+
+### Herramientas de Desarrollo
+- **ESLint** - Linting de código
+- **PostCSS** - Procesamiento de CSS
+- **Autoprefixer** - Compatibilidad de CSS
+
+## 🚀 Instalación y Configuración
+
+### Prerrequisitos
+- Node.js (versión 16 o superior)
+- npm o yarn
+
+### Instalación
+```bash
+# Clonar el repositorio
+git clone https://github.com/jpcuencat/tienda-don-fraccion.git
+
+# Navegar al directorio del proyecto
+cd tienda-don-fraccion
+
+# Instalar dependencias
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Comandos Disponibles
+```bash
+# Iniciar servidor de desarrollo
+npm run dev
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+# Construir para producción
+npm run build
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+# Vista previa de la build
+npm run preview
+
+# Ejecutar linter
+npm run lint
 ```
+
+## 📁 Estructura del Proyecto
+
+```
+src/
+├── components/           # Componentes reutilizables
+│   ├── DonFraccion/     # Componentes del juego de tienda
+│   ├── Presentation/    # Componentes de presentación educativa
+│   ├── SimulatorPizza/  # Componentes del simulador de pizza
+│   └── Staircase/       # Componentes de la escalera de fracciones
+├── pages/               # Páginas principales de la aplicación
+├── assets/              # Recursos estáticos (imágenes, CSS, animaciones)
+└── main.tsx            # Punto de entrada de la aplicación
+```
+
+## 🎓 Objetivos Pedagógicos
+
+- **Comprensión Visual**: Representar fracciones de manera gráfica y tangible
+- **Aprendizaje Interactivo**: Participación activa del estudiante en el proceso
+- **Aplicación Práctica**: Conexión con situaciones de la vida real
+- **Retroalimentación Inmediata**: Validación instantánea del aprendizaje
+- **Progresión Adaptativa**: Dificultad incremental según el avance
+
+## 🤝 Contribuciones
+
+Este proyecto está diseñado para ser extensible. Se pueden agregar nuevas actividades, mejorar las existentes o implementar funcionalidades adicionales siguiendo la arquitectura establecida.
+
+## 📄 Licencia
+
+Proyecto educativo desarrollado con fines pedagógicos.
