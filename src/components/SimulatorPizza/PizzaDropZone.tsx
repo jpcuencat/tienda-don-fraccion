@@ -1,83 +1,76 @@
+import { useCallback } from "react";
 import { useDrop } from "react-dnd";
 import Fraction from "fraction.js";
-
-interface Slice {
-  id: string;
-  value: Fraction;
-  color: string;
-}
+import type { Slice } from "./PizzaSimulator";
 
 interface PizzaDropZoneProps {
-  onDropFraction: (fraction: string) => void;
+  onAddPiece: (fraction: string) => void;
+  onRemoveSlice: (sliceId: string, value: Fraction) => void;
   slices: Slice[];
-  setSlices: React.Dispatch<React.SetStateAction<Slice[]>>;
   total: Fraction;
-  setTotal: React.Dispatch<React.SetStateAction<Fraction>>;
-  colorIndex: number;
-  setColorIndex: React.Dispatch<React.SetStateAction<number>>;
   target: Fraction;
   maxPieces: number;
+  minPieces: number;
 }
 
-const COLORS = ["#facc15", "#f97316", "#4ade80", "#60a5fa", "#f472b6", "#c084fc"];
-
 export const PizzaDropZone: React.FC<PizzaDropZoneProps> = ({
-  onDropFraction,
+  onAddPiece,
+  onRemoveSlice,
   slices,
-  setSlices,
   total,
-  setTotal,
-  colorIndex,
-  setColorIndex,
   target,
   maxPieces,
+  minPieces,
 }) => {
   const [, drop] = useDrop(() => ({
     accept: "pizza",
     drop: (item: { id: string; fraction: string }) => {
-      const f = new Fraction(item.fraction);
-      const newSlice: Slice = {
-        id: item.id + "_" + Date.now(),
-        value: f,
-        color: COLORS[colorIndex % COLORS.length],
-      };
-      setSlices((prev) => [...prev, newSlice]);
-      setTotal((prev) => prev.add(f));
-      setColorIndex((prev) => prev + 1);
-      onDropFraction(item.fraction);
+      onAddPiece(item.fraction);
     },
   }));
 
-  const getAngle = (f: Fraction) => 360 * f.valueOf();
+  // Callback ref para compatibilidad con React 19
+  const dropRef = useCallback(
+    (node: HTMLDivElement | null) => { drop(node); },
+    [drop]
+  );
+
+  const isCorrect = total.equals(target) && slices.length >= minPieces && slices.length <= maxPieces;
+  const isOver    = total.compare(target) > 0;
+
   let currentAngle = 0;
 
   return (
-    <div className="relative w-64 h-64" ref={drop}>
-      <svg viewBox="0 0 200 200" className="w-full h-full">
+    <div className="relative w-64 h-64 mt-4" ref={dropRef}>
+      <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-xl">
+        {/* Fondo */}
         <circle cx="100" cy="100" r="100" fill="#1f2937" />
-        {[...slices].map((slice) => {
+
+        {/* Anillo guía del objetivo */}
+        <circle
+          cx="100" cy="100" r="96"
+          fill="none"
+          stroke="#ffffff20"
+          strokeWidth="8"
+          strokeDasharray={`${target.valueOf() * 2 * Math.PI * 96} ${2 * Math.PI * 96}`}
+          strokeDashoffset={`${2 * Math.PI * 96 * 0.25}`}
+          transform="rotate(-90 100 100)"
+        />
+
+        {/* Sectores de porciones */}
+        {slices.map((slice) => {
           const startAngle = currentAngle;
-          const angle = getAngle(slice.value);
-          const endAngle = startAngle + angle;
-          currentAngle += angle;
+          const angle      = 360 * slice.value.valueOf();
+          const endAngle   = startAngle + angle;
+          currentAngle    += angle;
 
-          const largeArc = angle > 180 ? 1 : 0;
-          const x1 = 100 + 100 * Math.cos((Math.PI * startAngle) / 180);
-          const y1 = 100 + 100 * Math.sin((Math.PI * startAngle) / 180);
-          const x2 = 100 + 100 * Math.cos((Math.PI * endAngle) / 180);
-          const y2 = 100 + 100 * Math.sin((Math.PI * endAngle) / 180);
+          const toRad = (deg: number) => (Math.PI * deg) / 180;
+          const x1 = 100 + 100 * Math.cos(toRad(startAngle));
+          const y1 = 100 + 100 * Math.sin(toRad(startAngle));
+          const x2 = 100 + 100 * Math.cos(toRad(endAngle));
+          const y2 = 100 + 100 * Math.sin(toRad(endAngle));
 
-          const d = `
-            M 100 100
-            L ${x1} ${y1}
-            A 100 100 0 ${largeArc} 1 ${x2} ${y2}
-            Z
-          `;
-
-          const handleClickSlice = () => {
-            setSlices((prev) => prev.filter((s) => s.id !== slice.id));
-            setTotal((prev) => prev.sub(slice.value));
-          };
+          const d = `M 100 100 L ${x1} ${y1} A 100 100 0 ${angle > 180 ? 1 : 0} 1 ${x2} ${y2} Z`;
 
           return (
             <path
@@ -85,58 +78,68 @@ export const PizzaDropZone: React.FC<PizzaDropZoneProps> = ({
               d={d}
               fill={slice.color}
               stroke="#111"
-              strokeWidth={1}
-              className="cursor-pointer transition duration-200 hover:opacity-80"
-              onClick={handleClickSlice}
+              strokeWidth={1.5}
+              className="cursor-pointer transition-opacity duration-150 hover:opacity-75"
+              onClick={() => onRemoveSlice(slice.id, slice.value)}
             />
           );
         })}
+
+        <circle cx="100" cy="100" r="100" fill="none" stroke="#ffffff25" strokeWidth="2" />
       </svg>
 
-      {/* Feedback central */}
+      {/* Panel central */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div
-          className={`text-white text-center px-5 py-4 rounded-xl shadow-lg w-[180px] pointer-events-auto ${
-            total.equals(target) && slices.length <= maxPieces
-              ? "bg-green-600/90"
-              : slices.length > maxPieces
-              ? "bg-red-600/90"
-              : "bg-yellow-500/90"
+          className={`text-white text-center px-4 py-3 rounded-xl shadow-lg w-[158px] pointer-events-auto transition-colors duration-300 ${
+            isCorrect             ? "bg-green-600/95 ring-2 ring-green-300" :
+            isOver                ? "bg-red-600/90"  :
+            slices.length > maxPieces ? "bg-red-600/90" :
+            "bg-black/60"
           }`}
         >
-          <p className="text-lg font-bold mb-1">Total:</p>
-          <p className="text-2xl font-mono">{total.n}/{total.d}</p>
+          <p className="text-xs text-white/60 mb-0.5">Total</p>
+          <p className="text-2xl font-mono font-bold">
+            {total.valueOf() === 0
+              ? "0"
+              : `${String(total.n)}/${String(total.d)}`}
+          </p>
 
-          {total.equals(target) && slices.length <= maxPieces && (
-            <div className="mt-2">
-              <p className="text-xl">🎉</p>
-              <p className="text-sm font-semibold">¡Correcto!</p>
-              <p className="text-xs">Reto completado</p>
-            </div>
+          {isCorrect && (
+            <div className="mt-1"><p className="text-lg">🎉</p><p className="text-xs font-bold">¡Correcto!</p></div>
           )}
-
+          {total.equals(target) && slices.length < minPieces && (
+            <div className="mt-1"><p className="text-lg">⚠️</p><p className="text-xs">Mín {minPieces} piezas</p></div>
+          )}
           {!total.equals(target) && slices.length > maxPieces && (
-            <div className="mt-2">
-              <p className="text-xl">⚠️</p>
-              <p className="text-sm font-semibold">Demasiadas porciones</p>
-              <p className="text-xs">Máximo permitido: {maxPieces}</p>
-            </div>
+            <div className="mt-1"><p className="text-lg">⚠️</p><p className="text-xs">Máx {maxPieces} piezas</p></div>
           )}
-
-          {total.compare(target) === -1 && slices.length <= maxPieces && (
-            <div className="mt-2">
-              <p className="text-xl">⏳</p>
-              <p className="text-sm font-semibold leading-tight">Agrega más porciones</p>
-            </div>
+          {isOver && slices.length <= maxPieces && (
+            <div className="mt-1"><p className="text-lg">❌</p><p className="text-xs">Te pasaste</p></div>
           )}
-
-          {total.compare(target) === 1 && (
-            <div className="mt-2">
-              <p className="text-xl">❌</p>
-              <p className="text-sm font-semibold">Te pasaste</p>
-            </div>
+          {!isCorrect && !isOver && !total.equals(target) && slices.length > 0 && (
+            <div className="mt-1"><p className="text-lg">⏳</p><p className="text-xs">Sigue sumando</p></div>
+          )}
+          {slices.length === 0 && (
+            <p className="text-xs text-white/40 mt-1">Arrastra aquí</p>
           )}
         </div>
+      </div>
+
+      {/* Indicador de piezas usadas */}
+      <div className="absolute -bottom-7 left-0 right-0 flex justify-center gap-1.5">
+        {Array.from({ length: maxPieces }).map((_, i) => (
+          <div
+            key={i}
+            className={`w-3 h-3 rounded-full border-2 transition-all ${
+              i < slices.length
+                ? i < minPieces
+                  ? "bg-yellow-400 border-yellow-300"
+                  : "bg-green-400 border-green-300"
+                : "bg-white/15 border-white/25"
+            }`}
+          />
+        ))}
       </div>
     </div>
   );
