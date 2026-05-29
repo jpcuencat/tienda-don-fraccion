@@ -106,7 +106,7 @@ export const migrateLegacyData = (): Presentation => {
 };
 
 // Funciones auxiliares
-function generateNotesForStep(stepId: string, description: string): string {
+function generateNotesForStep(stepId: string, _description: string): string {
   const noteTemplates: Record<string, string> = {
     i1: "Enfatizar la relación visual entre las partes comidas y el total. Usar gestos para mostrar la fracción.",
     i2: "Relacionar con experiencias cotidianas de los estudiantes con vehículos.",

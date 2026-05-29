@@ -188,7 +188,7 @@ export const FractionStaircase = () => {
 
   // ── Iniciar partida ────────────────────────────────────────────────────────
 
-  const startGame = useCallback((lvl: Level, mod: Mode) => {
+  const startGame = useCallback((lvl: Level, _mod: Mode) => {
     if (timerRef.current) clearInterval(timerRef.current);
     const fracs = genFracciones(lvl);
     setPool(fracs);

@@ -282,7 +282,7 @@ export const PresentationAdmin = () => {
               </div>
 
               <div className="space-y-2">
-                {selectedPresentation.slides.map((slide, index) => (
+                {selectedPresentation.slides.map((slide) => (
                   <div
                     key={slide.id}
                     className="p-3 border rounded hover:border-gray-400"
